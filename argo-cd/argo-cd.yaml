@@ -7,7 +7,10 @@ spec:
   source:
     repoURL: https://github.com/Anvarking/HELM_traning.git
     targetRevision: HEAD
-    path: argo-cd    
+    path: argo-cd   
+    helm:
+      valueFile:
+        argo-cd.yaml 
   destination:
     namespace: default  
     server: https://kubernetes.default.svc
