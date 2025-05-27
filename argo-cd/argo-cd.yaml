@@ -3,19 +3,21 @@ kind: Application
 metadata:
   name: app
   namespace: argocd
+  finalizers:
+    - resources-finalizer.agrocd.agroproj.io
 spec:
+
+  destination:
+    namespace: default  
+    namespace: app1
   source:
     repoURL: https://github.com/Anvarking/HELM_traning.git
     targetRevision: HEAD
     path: argo-cd   
-    helm:
-      valueFile:
-        argo-cd.yaml 
-  destination:
-    namespace: default  
-    server: https://kubernetes.default.svc
   project: default
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
