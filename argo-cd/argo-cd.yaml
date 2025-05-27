@@ -12,6 +12,6 @@ spec:
       valueFile:
         argo-cd.yaml
   destination:
-    namespace: argocd  
+    namespace: default  
     server: https://kubernetes.default.svc
   project: default
