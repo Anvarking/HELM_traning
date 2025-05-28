@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: 'https://github.com/Anvarking/HELM_traning.git'
     targetRevision: HEAD
-    path: rabbitmq
+    path: rabbitmq1
     helm:
       valueFiles:
         - rabbitmq.yaml
