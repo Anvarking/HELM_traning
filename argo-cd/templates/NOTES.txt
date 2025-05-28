@@ -1,34 +1,65 @@
-{{- if .Values.notifications.logLevel }}
-DEPRECATED option notifications.logLevel - Use `configs.params."notificationscontroller.log.level"`
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+Did you know there are enterprise versions of the Bitnami catalog? For enhanced secure software supply chain features, unlimited pulls from Docker, LTS support, or application customization, see Bitnami Premium or Tanzu Application Catalog. See https://www.arrow.com/globalecs/na/vendors/bitnami for more information.
+
+** Please be patient while the chart is being deployed **
+
+1. Access your Argo CD installation:
+
+{{- if .Values.server.ingress.enabled }}
+  Connect to one of the following hosts:
+  {{ if .Values.server.ingress.tls }}
+    https://{{ .Values.server.ingress.hostname }}
+  {{- else }}
+    http://{{ .Values.server.ingress.hostname }}
+  {{- end }}
+{{- else }}
+  Execute the following commands:
+{{- if contains "NodePort" .Values.server.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ include "common.names.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "argocd.server" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "common.names.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  export URL="http://${NODE_IP}:${NODE_PORT}/"
+  echo "Argo CD URL: http://$NODE_IP:$NODE_PORT/"
+
+{{- else if contains "LoadBalancer" .Values.server.service.type }}
+
+** Please ensure an external IP is associated to the {{ include "argocd.server" . }} service before proceeding **
+** Watch the status using: kubectl get svc --namespace {{ include "common.names.namespace" . }} -w {{ include "argocd.server" . }} **
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "common.names.namespace" . }} {{ include "argocd.server" . }} --template "{{ "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}" }}")
+
+{{- $port:=.Values.server.service.ports.http | toString }}
+  export URL="http://${SERVICE_IP}{{- if ne $port "80" }}:{{ .Values.server.service.ports.http }}{{ end }}"
+  echo "Argo CD URL: http://$SERVICE_IP{{- if ne $port "80" }}:{{ .Values.server.service.ports.http }}{{ end }}/"
+
+{{- else if contains "ClusterIP" .Values.server.service.type }}
+
+  kubectl port-forward --namespace {{ include "common.names.namespace" . }} svc/{{ include "argocd.server" . }} 8080:{{ .Values.server.service.ports.http }} &
+  export URL=http://127.0.0.1:8080/
+  echo "Argo CD URL: http://127.0.0.1:8080/"
 {{- end }}
-{{- if .Values.notifications.logFormat }}
-DEPRECATED option notifications.logFormat - Use `configs.params."notificationscontroller.log.format"`
 {{- end }}
-{{- if .Values.dex.logLevel }}
-DEPRECATED option dex.logLevel - Use `configs.params."dexserver.log.level"`
-{{- end }}
-{{- if .Values.dex.logFormat }}
-DEPRECATED option dex.logFormat - Use `configs.params."dexserver.log.format"`
-{{- end }}
-In order to access the server UI you have the following options:
 
-1. kubectl port-forward service/{{ include "argo-cd.fullname" . }}-server -n {{ include  "argo-cd.namespace" . }} 8080:443
+2. Execute the following commands to obtain the Argo CD credentials:
 
-    and then open the browser on http://localhost:8080 and accept the certificate
+  echo "Username: \"admin\""
+  echo "Password: $(kubectl -n {{ include "common.names.namespace" . }} get secret argocd-secret -o jsonpath="{.data.clearPassword}" | base64 -d)"
 
-2. enable ingress in the values file `server.ingress.enabled` and either
-      - Add the annotation for ssl passthrough: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
-      - Set the `configs.params."server.insecure"` in the values file and terminate SSL at your ingress: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-multiple-ingress-objects-and-hosts
+{{- if not .Values.server.configEnabled -}}
+WARNING: server.configEnabled is disabled, a config map called "argocd-cm" must exist in your namespace
+{{- end -}}
+{{- if not .Values.config.createExtraKnownHosts -}}
+WARNING: config.createExtraKnownHosts is disabled, a secret called "argocd-ssh-known-hosts-cm" must exist in your namespace
+{{- end -}}
 
+{{- include "common.warnings.rollingTag" .Values.image }}
+{{- include "common.warnings.rollingTag" .Values.dex.image }}
+{{- include "common.warnings.rollingTag" .Values.volumePermissions.image }}
+{{- include "common.warnings.rollingTag" .Values.redis.image }}
 
-{{ if eq (toString (index .Values.configs.cm "admin.enabled")) "true" -}}
-After reaching the UI the first time you can login with username: admin and the random password generated during the installation. You can find the password by running:
-
-kubectl -n {{ include  "argo-cd.namespace" . }} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
-(You should delete the initial secret afterwards as suggested by the Getting Started Guide: https://argo-cd.readthedocs.io/en/stable/getting_started/#4-login-using-the-cli)
-{{ else if or (index .Values.configs.cm "dex.config") (index .Values.configs.cm "oidc.config") -}}
-After reaching the UI the first time you can login using Dex or OIDC.
-{{ else -}}
-After reaching the UI the first time you cannot login with username and password since you've disabled it. You should enable admin back or configure Dex via `configs.cm.dex.config` or OIDC via `configs.cm.oidc.config`.
-{{ end -}}
+{{- include "argocd.validateValues" . }}
+{{- include "common.warnings.resources" (dict "sections" (list "applicationSet" "controller" "dex" "notifications.bots.slack" "notifications" "repoServer" "server" "volumePermissions") "context" $) }}
+{{- include "common.warnings.modifiedImages" (dict "images" (list .Values.image .Values.dex.image .Values.volumePermissions.image .Values.redis.image) "context" $) }}
+{{- include "common.errors.insecureImages" (dict "images" (list .Values.image .Values.dex.image .Values.volumePermissions.image .Values.redis.image) "context" $) }}
