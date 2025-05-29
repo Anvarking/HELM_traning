@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: prod
+  name: prod-rabbitmq
   namespace: argocd
 spec:
-  project: prod-rabbitmq
+  project: prod
 
   source:
     repoURL: 'git@github.com:Anvarking/HELM_traning.git'
