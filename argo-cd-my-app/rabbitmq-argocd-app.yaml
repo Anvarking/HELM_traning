@@ -7,7 +7,7 @@ spec:
   project: default
 
   source:
-    repoURL: 'https://github.com/nematullo/helm-test-learning.git'
+    repoURL: 'git@github.com:Anvarking/HELM_traning.git'
     targetRevision: HEAD
     path: rabbitmq
     helm:
