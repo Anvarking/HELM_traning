@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: prod
+  name: dev-redis
   namespace: argocd
 spec:
   project: prod
@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: 'git@github.com:Anvarking/HELM_traning.git'
     targetRevision: HEAD
-    path: rabbitmq
+    path: radis
     helm:
       valueFiles:
         - neo-values.yaml
