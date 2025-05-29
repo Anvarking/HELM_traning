@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: 'git@github.com:Anvarking/HELM_traning.git'
     targetRevision: HEAD
-    path: radis
+    path: redis
     helm:
       valueFiles:
         - neo-values.yaml
