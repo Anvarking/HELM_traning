@@ -11,9 +11,13 @@ auth:
   adminUser: admin
   adminPassword: admin
 
+replicaCount: 1 # Отключаем основной Keycloak
+
+
 # PostgreSQL Specific Configuration
 postgresql:
   enabled: true
+  replicaCount: 1
   auth:
     username: bn_keycloak
     password: bn_keycloak
@@ -37,3 +41,16 @@ extraEnvVars:
     value: "20"
   - name: VERTX_EVENT_LOOP_POOL_SIZE
     value: "8"
+
+
+resources:
+  requests:
+    # Запрос на 256 мегабайт памяти
+    memory: 401Mi
+    # Можно также добавить запрос на CPU, если нужно, например, 0.1 CPU
+    cpu: 100m
+  limits:
+    # Лимит на 256 мегабайт памяти
+    memory: 500Mi
+    # Можно также добавить лимит на CPU, если нужно, например, 0.2 CPU
+    cpu: 400m
