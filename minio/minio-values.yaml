@@ -1,0 +1,39 @@
+#image:
+#  repository: docker.io/bitnami/minio
+#  tag: 16.0.10 # Или версия, которую вы загрузили
+replicaCount: 1
+
+service:
+  type: ClusterIP # Изменено с NodePort на ClusterIP
+  # Секция nodePorts больше не нужна, так как ClusterIP не открывает порты на узлах
+  ports:
+    # Имя порта: внешний порт сервиса
+    api: 9000
+    console: 9001
+    # Если вы хотите более явно указать targetPort (внутренний порт контейнера),
+    # можно использовать такой формат, но для ClusterIP часто достаточно простого:
+    # - name: api
+    #   port: 9000
+    #   targetPort: 9000 # Порт, на котором MinIO прослушивает внутри пода
+    # - name: console
+    #   port: 9001
+    #   targetPort: 9001 # Порт, на котором консоль MinIO прослушивает внутри пода
+
+auth:
+  rootUser: "admin" # Замените на желаемое имя пользователя
+  rootPassword: "admin" # Замените на желаемый пароль (минимум 8 символов, рекомендуется сложный пароль)
+
+resources:
+  requests:
+    cpu: 100m # 100 миллиядер
+    memory: 128Mi # 128 мегабайт
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 10Gi # Размер PersistentVolumeClaim
+  storageClass: standard # Или ваш StorageClass
+
+fullnameOverride: "minio" # Постоянное имя для ресурсов MinIO
